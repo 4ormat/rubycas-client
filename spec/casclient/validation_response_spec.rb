@@ -122,6 +122,27 @@ RESPONSE_TEXT
     end
   end
 
+  context "When parsing extra attributes with multiple attribute elements" do
+    let(:response_text) do
+<<RESPONSE_TEXT
+<cas:serviceResponse xmlns:cas="http://www.yale.edu/tp/cas">
+  <cas:authenticationSuccess>
+    <cas:attributes>
+      <cas:group>ABC</cas:group>
+      <cas:group>DEF</cas:group>
+    </cas:attributes>
+  </cas:authenticationSuccess>
+</cas:serviceResponse>
+RESPONSE_TEXT
+    end
+
+    subject { CASClient::ValidationResponse.new response_text }
+
+    it "parses mutliple same-type elements to array of their values" do
+      subject.extra_attributes["group"].should == ['ABC', 'DEF']
+    end
+  end
+
   context "When parsing extra attributes from xml attributes" do
     let(:response_text) do
 <<RESPONSE_TEXT
