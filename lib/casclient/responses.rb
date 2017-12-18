@@ -64,7 +64,7 @@ module CASClient
           end
         end
 
-        @extra_attributes = {}
+        @extra_attributes = Hash.new { |hash, key| hash[key] = [] }
         @xml.elements.to_a('//cas:authenticationSuccess/cas:attributes/* | //cas:authenticationSuccess/*[local-name() != \'proxies\' and local-name() != \'proxyGrantingTicket\' and local-name() != \'user\' and local-name() != \'attributes\']').each do |el|
           inner_text = el.cdatas.length > 0 ? el.cdatas.join('') : el.text
           name = el.name
@@ -72,7 +72,15 @@ module CASClient
             name       = attrs['name']
             inner_text = attrs['value']
           end
-          @extra_attributes.merge! name => inner_text
+          @extra_attributes[name] << inner_text
+        end
+
+        @extra_attributes.each_pair do |k, v|
+          if v.size == 1
+            @extra_attributes[k] = v.first
+          else
+            @extra_attributes[k] = YAML.dump(v)
+          end
         end
 
         # unserialize extra attributes
